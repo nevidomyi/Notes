@@ -13,9 +13,19 @@ import java.util.ArrayList;
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> {
 
     private ArrayList<Notes> notes;
+    private OnNoteClickListener onNoteClickListener;
 
     public NotesAdapter(ArrayList<Notes> notes) {
         this.notes = notes;
+    }
+
+    interface OnNoteClickListener {
+        void onNoteClick(int position);
+        void onNoteLongClick(int position);
+    }
+
+    public void setOnNoteClickListener(OnNoteClickListener onNoteClickListener) {
+        this.onNoteClickListener = onNoteClickListener;
     }
 
     @NonNull
@@ -31,7 +41,22 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         holder.textViewTitle.setText(note.getTitle());
         holder.textViewDescription.setText(note.getDescription());
         holder.textViewDayOfWeek.setText(note.getDayOfWeek());
-        holder.textViewPriority.setText(String.format("%s", note.getPriority()));
+
+        int colorId;
+        int priority = note.getPriority();
+
+        switch (priority) {
+            case 1:
+                colorId = holder.itemView.getResources().getColor(android.R.color.holo_red_light);
+                break;
+            case 2:
+                colorId = holder.itemView.getResources().getColor(android.R.color.holo_orange_light);
+                break;
+            default:
+                colorId = holder.itemView.getResources().getColor(android.R.color.holo_green_light);
+                break;
+        }
+        holder.textViewTitle.setBackgroundColor(colorId);
     }
 
     @Override
@@ -44,7 +69,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         private TextView textViewTitle;
         private TextView textViewDescription;
         private TextView textViewDayOfWeek;
-        private TextView textViewPriority;
 
         public NotesViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -52,7 +76,23 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
             textViewTitle = itemView.findViewById(R.id.textViewTitle);
             textViewDescription = itemView.findViewById(R.id.textViewDescription);
             textViewDayOfWeek = itemView.findViewById(R.id.textViewDayOfWeek);
-            textViewPriority = itemView.findViewById(R.id.textViewPriority);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (onNoteClickListener != null) {
+                        onNoteClickListener.onNoteClick(getAdapterPosition());
+                    }
+                }
+            });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (onNoteClickListener != null) {
+                        onNoteClickListener.onNoteLongClick(getAdapterPosition());
+                    }
+                    return true;
+                }
+            });
         }
     }
 }
